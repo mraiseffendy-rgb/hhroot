@@ -41,10 +41,12 @@ load_config() {
     else
         # Default jika config.sh belum dibuat
         USERS_DATA["Ranz"]="123"
+        USERS_DATA["Nano"]="root"
     fi
 
     if [ ${#USERS_DATA[@]} -eq 0 ]; then
         USERS_DATA["Ranz"]="123"
+        USERS_DATA["Nano"]="root"
     fi
 }
 

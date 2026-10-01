@@ -1,7 +1,10 @@
-cat << 'EOF' > LINUX.SH
+cat << 'EOF' > Bash.sh
 #!/data/data/com.termux/files/usr/bin/bash
 
-# Folder & File .env
+# =========================================================
+# LINUX ROOT ENVIRONMENT FOR TERMUX - RANZ MODS ROOT
+# =========================================================
+
 ENV_FILE="$HOME/.env"
 LAST_MD5=""
 
@@ -11,7 +14,6 @@ tput civis 2>/dev/null || true
 # Fungsi Memuat & Mendeteksi Perubahan File .env
 load_env() {
     if [ -f "$ENV_FILE" ]; then
-        # Hitung MD5 Checksum untuk deteksi perubahan
         if command -v md5sum >/dev/null 2>&1; then
             CURRENT_MD5=$(md5sum "$ENV_FILE" | awk '{print $1}')
         else
@@ -27,12 +29,10 @@ load_env() {
             LAST_MD5="$CURRENT_MD5"
         fi
     else
-        # Default jika .env tidak ada
         USERNAME="Ranz"
         PASSWORD="123"
     fi
 
-    # Fallback jika variabel di .env kosong
     [ -z "$USERNAME" ] && USERNAME="Ranz"
     [ -z "$PASSWORD" ] && PASSWORD="123"
 }
@@ -40,42 +40,45 @@ load_env() {
 # Memuat .env saat pertama kali dijalankan
 load_env
 
-# Fungsi Efek Typing Logo Linux (Titik Merah & Gambar Tux)
+# Fungsi Logo Linux (Tux ASCII) Kece & Rapih
 show_logo() {
     clear
     local logo=(
-        "\033[31m       .---.       \033[0m"
-        "\033[31m      /     \      \033[0m"
-        "\033[31m     \033[37m|       |\033[0m     "
-        "\033[31m    / \033[30;47m-     -\033[0m\033[31m \    \033[0m"
-        "\033[31m   |   \033[33m(o) (o)\033[0m\033[31m |   \033[0m"
-        "\033[31m   |  \033[33m  .---.\033[0m \033[31m |   \033[0m"
-        "\033[31m   | \033[33m  /     \\\033[0m\033[31m|   \033[0m"
-        "\033[31m   | \033[33m  \___/ \033[0m\033[31m|   \033[0m"
+        "\033[31m         .---.         \033[0m"
+        "\033[31m        /     \        \033[0m"
+        "\033[31m       |       |       \033[0m"
+        "\033[31m      / \033[30;47m-     -\033[0m\033[31m \      \033[0m"
+        "\033[31m     |   \033[33m(o) (o)\033[0m\033[31m |     \033[0m"
+        "\033[31m     |  \033[33m  .---.\033[0m \033[31m |     \033[0m"
+        "\033[31m     | \033[33m  /     \\\033[0m\033[31m|     \033[0m"
+        "\033[31m     | \033[33m  \___/ \033[0m\033[31m|     \033[0m"
     )
 
     for line in "${logo[@]}"; do
         for (( i=0; i<${#line}; i++ )); do
             echo -ne "${line:$i:1}"
-            sleep 0.002
+            sleep 0.0015
         done
         echo ""
     done
     echo ""
-    echo -e "\033[1;31m========== Ranz mods root ==========\033[0m"
+    echo -e "\033[1;31m╔══════════════════════════════════════════╗\033[0m"
+    echo -e "\033[1;31m║          RANZ MODS ROOT SYSTEM           ║\033[0m"
+    echo -e "\033[1;31m╚══════════════════════════════════════════╝\033[0m"
     echo ""
 }
 
-# Fungsi Kotak Informasi (User & Jam)
+# Fungsi Kotak Informasi Sistem
 show_info_box() {
     local current_time=$(date +"%H:%M:%S WIB - %d/%m/%Y")
     local total_users=1
 
-    echo -e "\033[1;36m┌──────────────────────────────────────────┐\033[0m"
-    echo -e "\033[1;36m│\033[0m \033[1;33mSYSTEM INFO\033[0m                              \033[1;36m│\033[0m"
-    printf "\033[1;36m│\033[0m \033[1;37m%-13s :\033[0m \033[1;32m%-22s\033[0m \033[1;36m│\033[0m\n" "Jumlah User" "$total_users Active User(s)"
-    printf "\033[1;36m│\033[0m \033[1;37m%-13s :\033[0m \033[1;35m%-22s\033[0m \033[1;36m│\033[0m\n" "Waktu / Jam" "$current_time"
-    echo -e "\033[1;36m└──────────────────────────────────────────┘\033[0m"
+    echo -e "\033[1;36m╔══════════════════════════════════════════╗\033[0m"
+    echo -e "\033[1;36m║\033[0m \033[1;33mSYSTEM INFORMATION STATUS\033[0m                \033[1;36m║\033[0m"
+    echo -e "\033[1;36m╠══════════════════════════════════════════╣\033[0m"
+    printf "\033[1;36m║\033[0m \033[1;37m%-13s :\033[0m \033[1;32m%-22s\033[0m \033[1;36m║\033[0m\n" "Active User" "$total_users Active Session"
+    printf "\033[1;36m║\033[0m \033[1;37m%-13s :\033[0m \033[1;35m%-22s\033[0m \033[1;36m║\033[0m\n" "Time / Date" "$current_time"
+    echo -e "\033[1;36m╚══════════════════════════════════════════╝\033[0m"
     echo ""
 }
 
@@ -83,7 +86,7 @@ show_info_box() {
 show_loading() {
     echo -e "\033[1;30m[!] Butuh waktu 1-3 menit untuk inisialisasi system...\033[0m\n"
     
-    local width=30
+    local width=26
     for i in $(seq 1 100); do
         local filled=$(( i * width / 100 ))
         local empty=$(( width - filled ))
@@ -93,19 +96,20 @@ show_loading() {
         for (( e=0; e<empty; e++ )); do bar="${bar}\033[40;1m \033[0m"; done
         
         echo -ne "\r\033[1;37mLoading: [${bar}\033[1;37m] ${i}% \033[0m"
-        sleep 0.03
+        sleep 0.025
     done
     echo -e "\n\n\033[1;32m[✓] Inisialisasi Selesai!\033[0m\n"
     sleep 1
 }
 
-# Header Utama
+# Header Utama Rapih & Anti Berantakan
 show_header() {
     clear
     load_env
-    echo -e "\033[1;32mWelcome to Linux Environment (Root Shell)\033[0m"
-    echo -e "\033[1;30mSystem Status: ONLINE | Mode: Root Access\033[0m"
-    echo -e "----------------------------------------------------"
+    echo -e "\033[1;32m╔══════════════════════════════════════════╗\033[0m"
+    echo -e "\033[1;32m║   WELCOME TO LINUX ROOT ENVIRONMENT      ║\033[0m"
+    echo -e "\033[1;32m║   STATUS: ONLINE  |  MODE: ROOT ACCESS   ║\033[0m"
+    echo -e "\033[1;32m╚══════════════════════════════════════════╝\033[0m"
     show_info_box
 }
 
@@ -115,26 +119,29 @@ terminal_login() {
     show_header
     tput cnorm 2>/dev/null || true
     
-    echo -e "\033[1;33m=== LOGIN TERMINAL ROOT ===\033[0m"
-    read -p "Username: " input_user
-    read -s -p "Password: " input_pass
+    echo -e "\033[1;33m╔══════════════════════════════════════════╗\033[0m"
+    echo -e "\033[1;33m║          LOGIN TERMINAL ROOT             ║\033[0m"
+    echo -e "\033[1;33m╚══════════════════════════════════════════╝\033[0m"
+    read -p " Username : " input_user
+    read -s -p " Password : " input_pass
     echo ""
 
-    load_env # Refresh data kredensial terbaru
+    load_env
 
     if [[ "$input_user" == "$USERNAME" && "$input_pass" == "$PASSWORD" ]]; then
-        echo -e "\n\033[1;32mAkses Diterima! Membuka Terminal Root...\033[0m"
+        echo -e "\n\033[1;32m[✓] Akses Diterima! Membuka Terminal Root...\033[0m"
         sleep 1
         clear
         
-        # Cetak Header Root + Logo Linux Pojok Kanan Atas
-        printf "\033[1;31m%-45s \033[37m    .---.\033[0m\n" "Linux Root Terminal Environment"
-        printf "\033[1;30m%-45s \033[37m   /     \\\033[0m\n" "Logged in as: root{$USERNAME}"
-        printf "\033[1;30m%-45s \033[37m  | () () |\033[0m\n" "Type 'exit' to logout"
-        printf "\033[1;30m%-45s \033[37m   \  =  /\033[0m\n" "----------------------------------------"
+        # Cetak Banner Root Terminal
+        echo -e "\033[1;31m╔══════════════════════════════════════════╗\033[0m"
+        echo -e "\033[1;31m║   LINUX ROOT TERMINAL ENVIRONMENT        ║\033[0m"
+        printf "\033[1;31m║   Logged in as: root{%-18s} ║\n" "$USERNAME"
+        echo -e "\033[1;31m║   Ketik 'exit' untuk kembali/logout      ║\033[0m"
+        echo -e "\033[1;31m╚══════════════════════════════════════════╝\033[0m"
         echo ""
         
-        # Buka bash shell interaktif dengan custom prompt
+        # Buka bash shell interaktif dengan custom prompt root
         bash --rcfile <(echo "export PS1='root{${USERNAME}} $ '")
     else
         echo -e "\n\033[1;31m[!] Username atau Password Salah!\033[0m"
@@ -151,10 +158,13 @@ show_loading
 while true; do
     tput cnorm 2>/dev/null || true
     show_header
-    echo -e "\033[1;36m[ MENU OPTIONS ]\033[0m"
-    echo -e "1. Exit"
-    echo -e "2. Terminal Login"
-    echo -e ""
+    echo -e "\033[1;36m╔══════════════════════════════════════════╗\033[0m"
+    echo -e "\033[1;36m║              MENU OPTIONS                ║\033[0m"
+    echo -e "\033[1;36m╠══════════════════════════════════════════╣\033[0m"
+    echo -e "\033[1;36m║  1. Exit                                 ║\033[0m"
+    echo -e "\033[1;36m║  2. Terminal Login                       ║\033[0m"
+    echo -e "\033[1;36m╚══════════════════════════════════════════╝\033[0m"
+    echo ""
     read -p "Pilih menu [1-2]: " choice
 
     case $choice in

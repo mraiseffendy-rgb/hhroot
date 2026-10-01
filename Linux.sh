@@ -10,6 +10,11 @@ USER_LIST=(
     "Ranz:123"
     "Raizdev:112"
 )
+# --- DATABASE USER (DISIMPAN DALAM BASH.SH) ---
+USER_LIST=(
+    "Nano:root"
+    "Nano:112"
+)
 # ---------------------------------------------
 
 declare -A USERS_DATA

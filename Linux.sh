@@ -20,19 +20,24 @@ load_env() {
             CURRENT_MD5=$(cksum "$ENV_FILE" | awk '{print $1}')
         fi
 
+        # Deteksi otomatis jika isi file .env berubah/diperbarui
         if [ "$CURRENT_MD5" != "$LAST_MD5" ]; then
             if [ -n "$LAST_MD5" ]; then
-                echo -e "\033[1;33m[!] Terdeteksi perubahan pada .env! Memuat ulang kredensial...\033[0m"
+                echo -e "\033[1;33m[!] Terdeteksi user/perubahan baru pada .env! Memuat ulang...\033[0m"
                 sleep 1
             fi
+            # Import variabel USERNAME dan PASSWORD dari .env
             export $(grep -v '^#' "$ENV_FILE" | xargs) 2>/dev/null
             LAST_MD5="$CURRENT_MD5"
         fi
     else
+        # Peringatan jika file .env belum dibuat
+        echo -e "\033[1;31m[!] File .env tidak ditemukan! Silakan buat ~/.env terlebih dahulu.\033[0m"
         USERNAME="Ranz"
         PASSWORD="123"
     fi
 
+    # Fallback jika variabel di .env kosong
     [ -z "$USERNAME" ] && USERNAME="Ranz"
     [ -z "$PASSWORD" ] && PASSWORD="123"
 }
@@ -76,13 +81,13 @@ show_info_box() {
     echo -e "\033[1;36m╔══════════════════════════════════════════╗\033[0m"
     echo -e "\033[1;36m║\033[0m \033[1;33mSYSTEM INFORMATION STATUS\033[0m                \033[1;36m║\033[0m"
     echo -e "\033[1;36m╠══════════════════════════════════════════╣\033[0m"
-    printf "\033[1;36m║\033[0m \033[1;37m%-13s :\033[0m \033[1;32m%-22s\033[0m \033[1;36m║\033[0m\n" "Active User" "$total_users Active Session"
+    printf "\033[1;36m║\033[0m \033[1;37m%-13s :\033[0m \033[1;32m%-22s\033[0m \033[1;36m║\033[0m\n" "Config User" "$USERNAME"
     printf "\033[1;36m║\033[0m \033[1;37m%-13s :\033[0m \033[1;35m%-22s\033[0m \033[1;36m║\033[0m\n" "Time / Date" "$current_time"
     echo -e "\033[1;36m╚══════════════════════════════════════════╝\033[0m"
     echo ""
 }
 
-# Fungsi Loading Bar Anti-Spam (Merah, Hitam, Abu-abu)
+# Fungsi Loading Bar Anti-Spam
 show_loading() {
     echo -e "\033[1;30m[!] Butuh waktu 1-3 menit untuk inisialisasi system...\033[0m\n"
     
@@ -102,10 +107,10 @@ show_loading() {
     sleep 1
 }
 
-# Header Utama Rapih & Anti Berantakan
+# Header Utama
 show_header() {
     clear
-    load_env
+    load_env # Refresh data user dari .env
     echo -e "\033[1;32m╔══════════════════════════════════════════╗\033[0m"
     echo -e "\033[1;32m║   WELCOME TO LINUX ROOT ENVIRONMENT      ║\033[0m"
     echo -e "\033[1;32m║   STATUS: ONLINE  |  MODE: ROOT ACCESS   ║\033[0m"
@@ -113,7 +118,7 @@ show_header() {
     show_info_box
 }
 
-# Terminal Login dengan Kredensial .env
+# Terminal Login dengan Kredensial Terhubung .env
 terminal_login() {
     clear
     show_header
@@ -126,14 +131,14 @@ terminal_login() {
     read -s -p " Password : " input_pass
     echo ""
 
-    load_env
+    load_env # Memastikan kredensial terbaru terbaca
 
     if [[ "$input_user" == "$USERNAME" && "$input_pass" == "$PASSWORD" ]]; then
         echo -e "\n\033[1;32m[✓] Akses Diterima! Membuka Terminal Root...\033[0m"
         sleep 1
         clear
         
-        # Cetak Banner Root Terminal
+        # Cetak Banner Root Terminal Sesuai User di .env
         echo -e "\033[1;31m╔══════════════════════════════════════════╗\033[0m"
         echo -e "\033[1;31m║   LINUX ROOT TERMINAL ENVIRONMENT        ║\033[0m"
         printf "\033[1;31m║   Logged in as: root{%-18s} ║\n" "$USERNAME"
@@ -141,10 +146,10 @@ terminal_login() {
         echo -e "\033[1;31m╚══════════════════════════════════════════╝\033[0m"
         echo ""
         
-        # Buka bash shell interaktif dengan custom prompt root
+        # Buka bash shell interaktif dengan custom prompt root{user} $
         bash --rcfile <(echo "export PS1='root{${USERNAME}} $ '")
     else
-        echo -e "\n\033[1;31m[!] Username atau Password Salah!\033[0m"
+        echo -e "\n\033[1;31m[!] Username atau Password Salah! Silakan cek ~/.env Anda.\033[0m"
         sleep 2
     fi
 }

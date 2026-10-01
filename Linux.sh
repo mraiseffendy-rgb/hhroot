@@ -2,7 +2,7 @@ cat << 'EOF' > Bash.sh
 #!/data/data/com.termux/files/usr/bin/bash
 
 # =========================================================
-# LINUX ROOT ENVIRONMENT FOR TERMUX - RANZ MODS ROOT
+# LINUX ROOT ENVIRONMENT FOR TERMUX - MULTI USER SUPPORT
 # =========================================================
 
 ENV_FILE="$HOME/.env"
@@ -10,6 +10,9 @@ LAST_MD5=""
 
 # Sembunyikan kursor saat animasi
 tput civis 2>/dev/null || true
+
+# Array untuk menyimpan daftar user & password
+declare -A USERS_DATA
 
 # Fungsi Memuat & Mendeteksi Perubahan File .env
 load_env() {
@@ -20,26 +23,44 @@ load_env() {
             CURRENT_MD5=$(cksum "$ENV_FILE" | awk '{print $1}')
         fi
 
-        # Deteksi otomatis jika isi file .env berubah/diperbarui
+        # Deteksi jika file .env diperbarui
         if [ "$CURRENT_MD5" != "$LAST_MD5" ]; then
             if [ -n "$LAST_MD5" ]; then
-                echo -e "\033[1;33m[!] Terdeteksi user/perubahan baru pada .env! Memuat ulang...\033[0m"
+                echo -e "\033[1;33m[!] Terdeteksi perubahan/user baru pada .env! Memuat ulang...\033[0m"
                 sleep 1
             fi
-            # Import variabel USERNAME dan PASSWORD dari .env
-            export $(grep -v '^#' "$ENV_FILE" | xargs) 2>/dev/null
+            
+            # Reset data user
+            USERS_DATA=()
+
+            # Baca semua variabel USER_ di .env
+            while IFS='=' read -r key value || [ -n "$key" ]; do
+                # Abaikan komentar dan baris kosong
+                [[ "$key" =~ ^#.* ]] && continue
+                [[ -z "$key" ]] && continue
+                
+                # Hapus tanda kutip dari nilai
+                value=$(echo "$value" | tr -d '"' | tr -d "'")
+                
+                # Ambil format username:password
+                if [[ "$value" == *":"* ]]; then
+                    u_name="${value%%:*}"
+                    u_pass="${value#*:}"
+                    USERS_DATA["$u_name"]="$u_pass"
+                fi
+            done < "$ENV_FILE"
+
             LAST_MD5="$CURRENT_MD5"
         fi
     else
-        # Peringatan jika file .env belum dibuat
-        echo -e "\033[1;31m[!] File .env tidak ditemukan! Silakan buat ~/.env terlebih dahulu.\033[0m"
-        USERNAME="Ranz"
-        PASSWORD="123"
+        # Fallback jika .env belum ada
+        USERS_DATA["Ranz"]="123"
     fi
 
-    # Fallback jika variabel di .env kosong
-    [ -z "$USERNAME" ] && USERNAME="Ranz"
-    [ -z "$PASSWORD" ] && PASSWORD="123"
+    # Jika .env kosong, beri user bawaan
+    if [ ${#USERS_DATA[@]} -eq 0 ]; then
+        USERS_DATA["Ranz"]="123"
+    fi
 }
 
 # Memuat .env saat pertama kali dijalankan
@@ -76,12 +97,12 @@ show_logo() {
 # Fungsi Kotak Informasi Sistem
 show_info_box() {
     local current_time=$(date +"%H:%M:%S WIB - %d/%m/%Y")
-    local total_users=1
+    local total_users=${#USERS_DATA[@]}
 
     echo -e "\033[1;36m╔══════════════════════════════════════════╗\033[0m"
     echo -e "\033[1;36m║\033[0m \033[1;33mSYSTEM INFORMATION STATUS\033[0m                \033[1;36m║\033[0m"
     echo -e "\033[1;36m╠══════════════════════════════════════════╣\033[0m"
-    printf "\033[1;36m║\033[0m \033[1;37m%-13s :\033[0m \033[1;32m%-22s\033[0m \033[1;36m║\033[0m\n" "Config User" "$USERNAME"
+    printf "\033[1;36m║\033[0m \033[1;37m%-13s :\033[0m \033[1;32m%-22s\033[0m \033[1;36m║\033[0m\n" "Registered" "$total_users User(s) in .env"
     printf "\033[1;36m║\033[0m \033[1;37m%-13s :\033[0m \033[1;35m%-22s\033[0m \033[1;36m║\033[0m\n" "Time / Date" "$current_time"
     echo -e "\033[1;36m╚══════════════════════════════════════════╝\033[0m"
     echo ""
@@ -110,7 +131,7 @@ show_loading() {
 # Header Utama
 show_header() {
     clear
-    load_env # Refresh data user dari .env
+    load_env # Refresh data user terbaru dari .env
     echo -e "\033[1;32m╔══════════════════════════════════════════╗\033[0m"
     echo -e "\033[1;32m║   WELCOME TO LINUX ROOT ENVIRONMENT      ║\033[0m"
     echo -e "\033[1;32m║   STATUS: ONLINE  |  MODE: ROOT ACCESS   ║\033[0m"
@@ -118,7 +139,7 @@ show_header() {
     show_info_box
 }
 
-# Terminal Login dengan Kredensial Terhubung .env
+# Terminal Login dengan Otentikasi Multi-User
 terminal_login() {
     clear
     show_header
@@ -131,25 +152,26 @@ terminal_login() {
     read -s -p " Password : " input_pass
     echo ""
 
-    load_env # Memastikan kredensial terbaru terbaca
+    load_env # Pastikan .env terbaru dimuat
 
-    if [[ "$input_user" == "$USERNAME" && "$input_pass" == "$PASSWORD" ]]; then
-        echo -e "\n\033[1;32m[✓] Akses Diterima! Membuka Terminal Root...\033[0m"
+    # Cek apakah username ada dan password cocok
+    if [[ -n "${USERS_DATA[$input_user]}" && "${USERS_DATA[$input_user]}" == "$input_pass" ]]; then
+        echo -e "\n\033[1;32m[✓] Akses Diterima! Selamat datang, ${input_user}!\033[0m"
         sleep 1
         clear
         
-        # Cetak Banner Root Terminal Sesuai User di .env
+        # Cetak Banner Root Terminal Sesuai User yang Login
         echo -e "\033[1;31m╔══════════════════════════════════════════╗\033[0m"
         echo -e "\033[1;31m║   LINUX ROOT TERMINAL ENVIRONMENT        ║\033[0m"
-        printf "\033[1;31m║   Logged in as: root{%-18s} ║\n" "$USERNAME"
+        printf "\033[1;31m║   Logged in as: root{%-18s} ║\n" "$input_user"
         echo -e "\033[1;31m║   Ketik 'exit' untuk kembali/logout      ║\033[0m"
         echo -e "\033[1;31m╚══════════════════════════════════════════╝\033[0m"
         echo ""
         
-        # Buka bash shell interaktif dengan custom prompt root{user} $
-        bash --rcfile <(echo "export PS1='root{${USERNAME}} $ '")
+        # Buka bash shell interaktif dengan prompt root{USER_YANG_LOGIN} $
+        bash --rcfile <(echo "export PS1='root{${input_user}} $ '")
     else
-        echo -e "\n\033[1;31m[!] Username atau Password Salah! Silakan cek ~/.env Anda.\033[0m"
+        echo -e "\n\033[1;31m[!] Username atau Password Salah!\033[0m"
         sleep 2
     fi
 }
